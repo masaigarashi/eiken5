@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英検5級 単語カード</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+:root {
+  --bg: #F5F2ED;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE8;
+  --border: #E2DDD7;
+  --text-primary: #1A1714;
+  --text-secondary: #6B6560;
+  --text-muted: #A09890;
+  --accent: #2D5A3D;
+  --accent-light: #E8F0EA;
+  --red: #C0392B;
+  --red-light: #FDECEA;
+  --green: #27AE60;
+  --green-light: #E9F7EF;
+  --flag: #E67E22;
+  --flag-light: #FEF5E7;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text-primary);
+  padding: 24px 16px 40px;
+}
+
+.app { max-width: 480px; margin: 0 auto; }
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.header-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--text-primary); line-height: 1; }
+.header-sub { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+.flag-count-btn {
+  font-size: 0.75rem; font-weight: 700; color: var(--flag);
+  background: var(--flag-light); padding: 5px 12px; border-radius: 20px;
+  cursor: pointer; border: 1.5px solid transparent; transition: all 0.2s; user-select: none;
+}
+.flag-count-btn.active { background: var(--flag); color: white; }
+.flag-count-btn:hover { opacity: 0.85; }
+
+.mode-tabs { display: flex; gap: 6px; background: var(--surface2); border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+.mode-tab {
+  flex: 1; padding: 8px; border: none; border-radius: 9px; background: transparent;
+  font-family: 'DM Sans', 'Noto Sans JP', sans-serif; font-size: 0.78rem; font-weight: 600;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+}
+.mode-tab.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+
+.filter-wrap { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+.filter-wrap::-webkit-scrollbar { display: none; }
+.cat-btn {
+  flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); font-family: 'DM Sans', 'Noto Sans JP', sans-serif;
+  font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: all 0.2s;
+}
+.cat-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; }
+.progress-nums { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); }
+.progress-track { height: 3px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 18px; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+
+.score-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.score-chip { flex: 1; padding: 10px 8px; border-radius: 10px; text-align: center; }
+.score-chip.ok { background: var(--green-light); }
+.score-chip.ng { background: var(--red-light); }
+.score-chip.flagged { background: var(--flag-light); }
+.score-num { font-family: 'DM Serif Display', serif; font-size: 1.5rem; line-height: 1; }
+.score-chip.ok .score-num { color: var(--green); }
+.score-chip.ng .score-num { color: var(--red); }
+.score-chip.flagged .score-num { color: var(--flag); }
+.score-lbl { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px; }
+
+/* Card */
+.card-scene { perspective: 1200px; margin-bottom: 14px; }
+.card-body {
+  position: relative;
+  height: 260px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.card-scene.flipped .card-body { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; inset: 0; backface-visibility: hidden; border-radius: 18px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 28px; background: var(--surface); border: 1.5px solid var(--border); box-shadow: var(--shadow-lg);
+}
+.card-back-face { transform: rotateY(180deg); }
+
+.card-meta { position: absolute; top: 16px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 18px; }
+.card-meta-cat { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.card-meta-num { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); }
+
+.card-flag-dot { position: absolute; bottom: 14px; right: 16px; font-size: 0.75rem; color: var(--flag); opacity: 0; transition: opacity 0.3s; }
+.card-flag-dot.on { opacity: 1; }
+
+/* Front — word only, no tap hint now */
+.card-word { font-family: 'DM Serif Display', serif; font-size: 3.2rem; color: var(--text-primary); text-align: center; line-height: 1.1; }
+
+/* Back */
+.card-emoji { font-size: 2.6rem; margin-bottom: 8px; }
+.card-meaning { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--accent); text-align: center; margin-bottom: 10px; line-height: 1.2; }
+.card-example { font-size: 0.78rem; font-style: italic; color: var(--text-secondary); text-align: center; line-height: 1.6; font-weight: 500; }
+
+/* Speak button on back */
+.speak-btn {
+  position: absolute; bottom: 14px; left: 16px;
+  background: var(--accent-light); border: none; border-radius: 20px;
+  padding: 4px 10px; font-size: 0.7rem; font-weight: 700;
+  color: var(--accent); cursor: pointer; transition: background 0.2s;
+  display: flex; align-items: center; gap: 4px;
+}
+.speak-btn:hover { background: #d0e6d8; }
+
+/* Main action buttons — shown on FRONT */
+.action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.act-btn {
+  padding: 15px;
+  border: none; border-radius: 13px;
+  font-family: 'DM Sans', 'Noto Sans JP', sans-serif;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; letter-spacing: 0.02em;
+}
+.act-btn:active { transform: scale(0.97); }
+.act-btn.ok { background: var(--green-light); color: var(--green); }
+.act-btn.ok:hover { background: #D5F5E3; }
+.act-btn.ng { background: var(--red-light); color: var(--red); }
+.act-btn.ng:hover { background: #FADBD8; }
+
+/* After NG — next button appears */
+.next-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 13px;
+  background: var(--accent); color: white;
+  font-family: 'DM Sans', 'Noto Sans JP', sans-serif;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  transition: opacity 0.2s; margin-bottom: 8px; letter-spacing: 0.03em;
+}
+.next-btn:hover { opacity: 0.88; }
+
+.shuffle-btn {
+  width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 11px;
+  background: transparent; color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+.shuffle-btn:hover { background: var(--surface2); }
+
+/* Flag drawer */
+.flag-drawer { margin-top: 18px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; display: none; }
+.flag-drawer.open { display: block; }
+.flag-drawer-header { padding: 13px 18px; background: var(--flag-light); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.flag-drawer-title { font-size: 0.78rem; font-weight: 700; color: var(--flag); letter-spacing: 0.05em; text-transform: uppercase; }
+.flag-clear-btn { font-size: 0.7rem; font-weight: 700; color: var(--red); background: none; border: none; cursor: pointer; padding: 2px 8px; border-radius: 6px; }
+.flag-clear-btn:hover { background: var(--red-light); }
+.flag-list { max-height: 220px; overflow-y: auto; }
+.flag-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; border-bottom: 1px solid var(--border); gap: 12px; }
+.flag-item:last-child { border-bottom: none; }
+.flag-word { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--text-primary); }
+.flag-meaning { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+.flag-remove { font-size: 0.68rem; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.flag-remove:hover { color: var(--red); background: var(--red-light); }
+.flag-empty { padding: 20px; text-align: center; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+
+/* Complete */
+.complete-panel { display: none; background: var(--surface); border-radius: 18px; padding: 36px 26px; text-align: center; border: 1.5px solid var(--border); box-shadow: var(--shadow-lg); animation: fadeUp 0.4s ease; }
+.complete-panel.show { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.complete-icon { width: 56px; height: 56px; background: var(--accent-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 14px; }
+.complete-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--text-primary); margin-bottom: 4px; }
+.complete-sub { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 20px; }
+.complete-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.c-stat { padding: 12px 8px; border-radius: 12px; background: var(--surface2); }
+.c-stat-num { font-family: 'DM Serif Display', serif; font-size: 1.5rem; }
+.c-stat-lbl { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+.restart-btn { width: 100%; padding: 13px; border: none; border-radius: 13px; background: var(--accent); color: white; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 8px; transition: opacity 0.2s; }
+.restart-btn:hover { opacity: 0.88; }
+.review-only-btn { width: 100%; padding: 12px; border: 1.5px solid var(--flag); border-radius: 13px; background: var(--flag-light); color: var(--flag); font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: opacity 0.2s; }
+.review-only-btn:hover { opacity: 0.88; }
+
+/* Toast */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--text-primary); color: white; padding: 9px 20px; border-radius: 30px; font-size: 0.8rem; font-weight: 700; transition: transform 0.35s cubic-bezier(0.23,1,0.32,1); z-index: 100; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok-t { background: var(--green); }
+.toast.ng-t { background: var(--flag); }
+
+/* OK counter pop animation */
+@keyframes okPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+@keyframes screenFlash {
+  0%   { opacity: 0; }
+  20%  { opacity: 0.18; }
+  100% { opacity: 0; }
+}
+.ok-pop { animation: okPop 0.45s cubic-bezier(0.23,1,0.32,1) forwards; }
+#screenFlash {
+  position: fixed; inset: 0; pointer-events: none; z-index: 998;
+  background: radial-gradient(circle at center, #a8edca 0%, transparent 70%);
+  opacity: 0;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div id="screenFlash"></div>
+  <!-- Particle canvas — full screen, behind everything -->
+  <canvas id="particleCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999"></canvas>
+
+  <div class="header">
+    <div>
+      <div class="header-title">英検5級</div>
+      <div class="header-sub">Grade 5 Vocabulary</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <!-- Big OK counter -->
+      <div id="okCounter" style="
+        display:flex;align-items:baseline;gap:4px;
+        background:var(--green-light);border-radius:16px;
+        padding:6px 14px;border:2px solid #B7E4C7;
+        transition:transform 0.15s;
+      ">
+        <span style="font-family:'DM Serif Display',serif;font-size:2rem;line-height:1;color:var(--green)" id="okBig">0</span>
+        <span style="font-size:0.65rem;font-weight:700;color:var(--green);letter-spacing:0.05em">わかった</span>
+      </div>
+      <div class="flag-count-btn" id="flagBtn" onclick="toggleDrawer()">🔖 要復習 <span id="flagNum">0</span>語</div>
+    </div>
+  </div>
+
+  <!-- Level selector -->
+  <div class="mode-tabs" id="levelTabs">
+    <button class="mode-tab active" id="lvAll" onclick="setLevel('all')">すべて</button>
+    <button class="mode-tab" id="lv1" onclick="setLevel('初級')">🟢 初級</button>
+    <button class="mode-tab" id="lv2" onclick="setLevel('中級')">🔵 中級</button>
+    <button class="mode-tab" id="lv3" onclick="setLevel('上級')">🟣 上級</button>
+  </div>
+  <!-- Review mode toggle -->
+  <div class="mode-tabs" style="margin-top:-8px">
+    <button class="mode-tab active" id="tabAll" onclick="setMode('all')">すべての単語</button>
+    <button class="mode-tab" id="tabReview" onclick="setMode('review')">🔖 要復習のみ</button>
+  </div>
+
+  <div class="filter-wrap" id="filterWrap"></div>
+
+  <div class="progress-row">
+    <span class="progress-label">Progress</span>
+    <span class="progress-nums" id="progressNums">0 / 0</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <div class="score-row">
+    <div class="score-chip ok"><div class="score-num" id="sOk">0</div><div class="score-lbl">わかった</div></div>
+    <div class="score-chip ng"><div class="score-num" id="sNg">0</div><div class="score-lbl">わからない</div></div>
+    <div class="score-chip flagged"><div class="score-num" id="sFlag">0</div><div class="score-lbl">要復習</div></div>
+  </div>
+
+  <!-- Card -->
+  <div class="card-scene" id="cardScene">
+    <div class="card-body" id="cardBody">
+
+      <div class="card-face" id="cFront">
+        <div class="card-meta">
+          <span class="card-meta-cat" id="fCat">—</span>
+          <span class="card-meta-num" id="fNum">1 / 1</span>
+        </div>
+        <div class="card-word" id="cardWord">apple</div>
+        <span class="card-flag-dot" id="flagDot">🔖</span>
+      </div>
+
+      <div class="card-face card-back-face" id="cBack">
+        <div class="card-meta">
+          <span class="card-meta-cat" id="bCat">—</span>
+          <span class="card-meta-num" id="bNum">1 / 1</span>
+        </div>
+        <div style="position:absolute;top:14px;right:50%;transform:translateX(50%);font-size:0.65rem;font-weight:700;color:var(--text-muted)" id="levelBadge"></div>
+        <div class="card-emoji" id="cardEmoji">🍎</div>
+        <div class="card-meaning" id="cardMeaning">りんご</div>
+        <div class="card-example" id="cardExample">I eat an apple.</div>
+        <button class="speak-btn" onclick="speakWord(event)">🔊 もう一度聞く</button>
+        <span class="card-flag-dot on" id="flagDotBack" style="opacity:0">🔖</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Buttons: わかった / わからない — always visible on front state -->
+  <div class="action-btns" id="actionBtns">
+    <button class="act-btn ng" onclick="answerNG()">✗ わからない</button>
+    <button class="act-btn ok" onclick="answerOK()">✓ わかった！</button>
+  </div>
+
+  <!-- Next button — shown after NG (answer revealed) -->
+  <button class="next-btn" id="nextBtn" onclick="nextCard()" style="display:none">次へ →</button>
+
+  <button class="shuffle-btn" onclick="shuffleCards()">シャッフル</button>
+
+  <!-- Complete panel -->
+  <div class="complete-panel" id="completePanel">
+    <div class="complete-icon">🎓</div>
+    <div class="complete-title">Complete!</div>
+    <div class="complete-sub" id="cSub">お疲れ様でした</div>
+    <div class="complete-grid">
+      <div class="c-stat"><div class="c-stat-num" id="cOk" style="color:var(--green)">0</div><div class="c-stat-lbl">わかった</div></div>
+      <div class="c-stat"><div class="c-stat-num" id="cNg" style="color:var(--red)">0</div><div class="c-stat-lbl">わからない</div></div>
+      <div class="c-stat"><div class="c-stat-num" id="cFlag" style="color:var(--flag)">0</div><div class="c-stat-lbl">要復習</div></div>
+    </div>
+    <button class="restart-btn" onclick="restart()">もう一度</button>
+    <button class="review-only-btn" id="reviewBtn" onclick="startReviewOnly()" style="margin-top:8px;display:none">🔖 要復習のみ練習する</button>
+  </div>
+
+  <!-- Flag drawer -->
+  <div class="flag-drawer" id="flagDrawer">
+    <div class="flag-drawer-header">
+      <span class="flag-drawer-title">🔖 要復習リスト</span>
+      <button class="flag-clear-btn" onclick="clearAllFlags()">すべてクリア</button>
+    </div>
+    <div class="flag-list" id="flagList"></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Audio ──────────────────────────────────────────────
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playPingPong() {
+  try {
+    const ctx = getAudioCtx();
+    const notes = [880, 1174.66]; // A5, D6 — ピンポン
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.35, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.start(t); osc.stop(t + 0.3);
+    });
+  } catch(e) { console.warn('audio error', e); }
+}
+
+function playBuzz() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.value = 160;
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.25, t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    osc.start(t); osc.stop(t + 0.4);
+  } catch(e) { console.warn('audio error', e); }
+}
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'en-US';
+  utt.rate = 0.85;
+  // Try to pick a natural English voice
+  const voices = window.speechSynthesis.getVoices();
+  const en = voices.find(v => v.lang.startsWith('en') && v.localService) || voices.find(v => v.lang.startsWith('en'));
+  if (en) utt.voice = en;
+  window.speechSynthesis.speak(utt);
+}
+
+// Preload voices
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// ── Data ──────────────────────────────────────────────
+const wordData = {
+  "初級": [
+    {word:"zero",meaning:"0",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"one",meaning:"1",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"two",meaning:"2",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"three",meaning:"3",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"four",meaning:"4",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"five",meaning:"5",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"six",meaning:"6",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"seven",meaning:"7",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"eight",meaning:"8",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"nine",meaning:"9",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"ten",meaning:"10",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"eleven",meaning:"11",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"twelve",meaning:"12",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"twenty",meaning:"20",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"hundred",meaning:"100",emoji:"🔢",category:"数字",level:"初級"},
+    {word:"red",meaning:"赤",emoji:"🎨",category:"色",level:"初級"},
+    {word:"blue",meaning:"青",emoji:"🎨",category:"色",level:"初級"},
+    {word:"green",meaning:"緑",emoji:"🎨",category:"色",level:"初級"},
+    {word:"yellow",meaning:"黄色",emoji:"🎨",category:"色",level:"初級"},
+    {word:"white",meaning:"白",emoji:"🎨",category:"色",level:"初級"},
+    {word:"black",meaning:"黒",emoji:"🎨",category:"色",level:"初級"},
+    {word:"pink",meaning:"ピンク",emoji:"🎨",category:"色",level:"初級"},
+    {word:"orange",meaning:"オレンジ色",emoji:"🎨",category:"色",level:"初級"},
+    {word:"purple",meaning:"紫",emoji:"🎨",category:"色",level:"初級"},
+    {word:"brown",meaning:"茶色",emoji:"🎨",category:"色",level:"初級"},
+    {word:"gray",meaning:"灰色",emoji:"🎨",category:"色",level:"初級"},
+    {word:"hello",meaning:"こんにちは",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"hi",meaning:"やあ",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"goodbye",meaning:"さようなら",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"bye",meaning:"バイバイ",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"yes",meaning:"はい",emoji:"💬",category:"基本",level:"初級"},
+    {word:"no",meaning:"いいえ",emoji:"💬",category:"基本",level:"初級"},
+    {word:"please",meaning:"おねがいします",emoji:"💬",category:"基本",level:"初級"},
+    {word:"thank you",meaning:"ありがとう",emoji:"💬",category:"基本",level:"初級"},
+    {word:"sorry",meaning:"ごめんなさい",emoji:"💬",category:"基本",level:"初級"},
+    {word:"excuse me",meaning:"すみません",emoji:"💬",category:"基本",level:"初級"},
+    {word:"good morning",meaning:"おはよう",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"good night",meaning:"おやすみ",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"fine",meaning:"元気な",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"welcome",meaning:"ようこそ",emoji:"👋",category:"挨拶",level:"初級"},
+    {word:"dog",meaning:"いぬ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"cat",meaning:"ねこ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"bird",meaning:"とり",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"fish",meaning:"さかな",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"rabbit",meaning:"うさぎ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"horse",meaning:"うま",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"cow",meaning:"うし",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"pig",meaning:"ぶた",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"bear",meaning:"くま",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"elephant",meaning:"ぞう",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"monkey",meaning:"さる",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"lion",meaning:"ライオン",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"tiger",meaning:"とら",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"frog",meaning:"かえる",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"duck",meaning:"アヒル",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"snake",meaning:"へび",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"mouse",meaning:"ねずみ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"sheep",meaning:"ひつじ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"chicken",meaning:"にわとり",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"fox",meaning:"きつね",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"wolf",meaning:"おおかみ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"deer",meaning:"しか",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"owl",meaning:"ふくろう",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"turtle",meaning:"かめ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"bee",meaning:"みつばち",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"butterfly",meaning:"ちょうちょ",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"ant",meaning:"あり",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"bug",meaning:"むし",emoji:"🐾",category:"動物",level:"初級"},
+    {word:"apple",meaning:"りんご",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"banana",meaning:"バナナ",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"rice",meaning:"ごはん",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"bread",meaning:"パン",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"egg",meaning:"たまご",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"milk",meaning:"ぎゅうにゅう",emoji:"🥤",category:"飲み物",level:"初級"},
+    {word:"water",meaning:"みず",emoji:"🥤",category:"飲み物",level:"初級"},
+    {word:"juice",meaning:"ジュース",emoji:"🥤",category:"飲み物",level:"初級"},
+    {word:"cake",meaning:"ケーキ",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"pizza",meaning:"ピザ",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"sushi",meaning:"すし",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"chocolate",meaning:"チョコレート",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"tomato",meaning:"トマト",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"carrot",meaning:"にんじん",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"potato",meaning:"じゃがいも",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"soup",meaning:"スープ",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"salad",meaning:"サラダ",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"meat",meaning:"肉",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"fruit",meaning:"くだもの",emoji:"🍎",category:"食べ物",level:"初級"},
+    {word:"eye",meaning:"め",emoji:"💪",category:"体",level:"初級"},
+    {word:"nose",meaning:"はな",emoji:"💪",category:"体",level:"初級"},
+    {word:"mouth",meaning:"くち",emoji:"💪",category:"体",level:"初級"},
+    {word:"ear",meaning:"みみ",emoji:"💪",category:"体",level:"初級"},
+    {word:"hand",meaning:"て",emoji:"💪",category:"体",level:"初級"},
+    {word:"foot",meaning:"あし(足)",emoji:"💪",category:"体",level:"初級"},
+    {word:"head",meaning:"あたま",emoji:"💪",category:"体",level:"初級"},
+    {word:"face",meaning:"かお",emoji:"💪",category:"体",level:"初級"},
+    {word:"hair",meaning:"かみ",emoji:"💪",category:"体",level:"初級"},
+    {word:"arm",meaning:"うで",emoji:"💪",category:"体",level:"初級"},
+    {word:"back",meaning:"せなか",emoji:"💪",category:"体",level:"初級"},
+    {word:"leg",meaning:"あし(脚)",emoji:"💪",category:"体",level:"初級"},
+    {word:"neck",meaning:"くび",emoji:"💪",category:"体",level:"初級"},
+    {word:"finger",meaning:"ゆび",emoji:"💪",category:"体",level:"初級"},
+    {word:"tooth",meaning:"は",emoji:"💪",category:"体",level:"初級"},
+    {word:"mother",meaning:"おかあさん",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"father",meaning:"おとうさん",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"brother",meaning:"おにいさん/おとうと",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"sister",meaning:"おねえさん/いもうと",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"grandma",meaning:"おばあさん",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"grandpa",meaning:"おじいさん",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"aunt",meaning:"おば",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"uncle",meaning:"おじ",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"son",meaning:"むすこ",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"daughter",meaning:"むすめ",emoji:"👨‍👩‍👧",category:"家族",level:"初級"},
+    {word:"baby",meaning:"あかちゃん",emoji:"👤",category:"人",level:"初級"},
+    {word:"friend",meaning:"ともだち",emoji:"👤",category:"人",level:"初級"},
+    {word:"school",meaning:"がっこう",emoji:"📍",category:"場所",level:"初級"},
+    {word:"book",meaning:"ほん",emoji:"📦",category:"もの",level:"初級"},
+    {word:"pen",meaning:"ペン",emoji:"📦",category:"もの",level:"初級"},
+    {word:"bag",meaning:"かばん",emoji:"📦",category:"もの",level:"初級"},
+    {word:"desk",meaning:"つくえ",emoji:"📦",category:"もの",level:"初級"},
+    {word:"clock",meaning:"とけい",emoji:"📦",category:"もの",level:"初級"},
+    {word:"ball",meaning:"ボール",emoji:"📦",category:"もの",level:"初級"},
+    {word:"music",meaning:"おんがく",emoji:"📚",category:"教科",level:"初級"},
+    {word:"computer",meaning:"コンピューター",emoji:"📦",category:"もの",level:"初級"},
+    {word:"phone",meaning:"でんわ",emoji:"📦",category:"もの",level:"初級"},
+    {word:"good",meaning:"よい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"big",meaning:"おおきい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"small",meaning:"ちいさい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"fast",meaning:"はやい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"happy",meaning:"うれしい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"hot",meaning:"あつい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"cold",meaning:"さむい/つめたい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"new",meaning:"あたらしい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"old",meaning:"ふるい",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"nice",meaning:"すてきな",emoji:"✨",category:"形容詞",level:"初級"},
+    {word:"eat",meaning:"たべる",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"drink",meaning:"のむ",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"run",meaning:"はしる",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"walk",meaning:"あるく",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"sleep",meaning:"ねる",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"play",meaning:"あそぶ",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"study",meaning:"べんきょうする",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"swim",meaning:"およぐ",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"sing",meaning:"うたう",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"jump",meaning:"とぶ",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"read",meaning:"よむ",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"write",meaning:"かく",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"listen",meaning:"きく",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"look",meaning:"みる",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"go",meaning:"いく",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"come",meaning:"くる",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"see",meaning:"みえる/あう",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"like",meaning:"すきだ",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"have",meaning:"もっている",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"make",meaning:"つくる",emoji:"⚡",category:"動詞",level:"初級"},
+    {word:"sun",meaning:"たいよう",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"moon",meaning:"つき",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"star",meaning:"ほし",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"sky",meaning:"そら",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"rain",meaning:"あめ",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"snow",meaning:"ゆき",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"flower",meaning:"はな",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"tree",meaning:"き",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"river",meaning:"かわ",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"sea",meaning:"うみ",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"cloud",meaning:"くも",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"wind",meaning:"かぜ",emoji:"🌿",category:"自然",level:"初級"},
+    {word:"Monday",meaning:"月曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"Tuesday",meaning:"火曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"Wednesday",meaning:"水曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"Thursday",meaning:"木曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"Friday",meaning:"金曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"Saturday",meaning:"土曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"Sunday",meaning:"日曜日",emoji:"📅",category:"曜日",level:"初級"},
+    {word:"morning",meaning:"あさ",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"afternoon",meaning:"ごご",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"evening",meaning:"ゆうがた",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"night",meaning:"よる",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"today",meaning:"きょう",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"tomorrow",meaning:"あした",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"yesterday",meaning:"きのう",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"now",meaning:"いま",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"time",meaning:"じかん",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"day",meaning:"ひ/にち",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"year",meaning:"ねん/とし",emoji:"⏰",category:"時間",level:"初級"},
+    {word:"week",meaning:"しゅう",emoji:"⏰",category:"時間",level:"初級"},
+  ],
+  "中級": [
+    {word:"January",meaning:"1月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"February",meaning:"2月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"March",meaning:"3月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"April",meaning:"4月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"May",meaning:"5月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"June",meaning:"6月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"July",meaning:"7月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"August",meaning:"8月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"September",meaning:"9月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"October",meaning:"10月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"November",meaning:"11月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"December",meaning:"12月",emoji:"🗓️",category:"月",level:"中級"},
+    {word:"spring",meaning:"はる",emoji:"🌸",category:"季節",level:"中級"},
+    {word:"summer",meaning:"なつ",emoji:"🌸",category:"季節",level:"中級"},
+    {word:"fall",meaning:"あき",emoji:"🌸",category:"季節",level:"中級"},
+    {word:"winter",meaning:"ふゆ",emoji:"🌸",category:"季節",level:"中級"},
+    {word:"weather",meaning:"てんき",emoji:"☀️",category:"天気",level:"中級"},
+    {word:"sunny",meaning:"はれ",emoji:"☀️",category:"天気",level:"中級"},
+    {word:"warm",meaning:"あたたかい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"cool",meaning:"すずしい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"house",meaning:"いえ",emoji:"📍",category:"場所",level:"中級"},
+    {word:"park",meaning:"こうえん",emoji:"📍",category:"場所",level:"中級"},
+    {word:"shop",meaning:"おみせ",emoji:"📍",category:"場所",level:"中級"},
+    {word:"hospital",meaning:"びょういん",emoji:"📍",category:"場所",level:"中級"},
+    {word:"station",meaning:"えき",emoji:"📍",category:"場所",level:"中級"},
+    {word:"library",meaning:"としょかん",emoji:"📍",category:"場所",level:"中級"},
+    {word:"room",meaning:"へや",emoji:"📍",category:"場所",level:"中級"},
+    {word:"kitchen",meaning:"だいどころ",emoji:"📍",category:"場所",level:"中級"},
+    {word:"restaurant",meaning:"レストラン",emoji:"📍",category:"場所",level:"中級"},
+    {word:"hotel",meaning:"ホテル",emoji:"📍",category:"場所",level:"中級"},
+    {word:"airport",meaning:"くうこう",emoji:"📍",category:"場所",level:"中級"},
+    {word:"city",meaning:"まち/し",emoji:"📍",category:"場所",level:"中級"},
+    {word:"town",meaning:"まち",emoji:"📍",category:"場所",level:"中級"},
+    {word:"farm",meaning:"のうじょう",emoji:"📍",category:"場所",level:"中級"},
+    {word:"field",meaning:"のはら",emoji:"📍",category:"場所",level:"中級"},
+    {word:"garden",meaning:"にわ",emoji:"📍",category:"場所",level:"中級"},
+    {word:"road",meaning:"みち",emoji:"📍",category:"場所",level:"中級"},
+    {word:"bridge",meaning:"はし",emoji:"📍",category:"場所",level:"中級"},
+    {word:"building",meaning:"たてもの",emoji:"📍",category:"場所",level:"中級"},
+    {word:"door",meaning:"ドア",emoji:"📦",category:"もの",level:"中級"},
+    {word:"window",meaning:"まど",emoji:"📦",category:"もの",level:"中級"},
+    {word:"table",meaning:"テーブル",emoji:"📦",category:"もの",level:"中級"},
+    {word:"chair",meaning:"いす",emoji:"📦",category:"もの",level:"中級"},
+    {word:"bed",meaning:"ベッド",emoji:"📦",category:"もの",level:"中級"},
+    {word:"sofa",meaning:"ソファ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"lamp",meaning:"ランプ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"TV",meaning:"テレビ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"camera",meaning:"カメラ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"mirror",meaning:"かがみ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"floor",meaning:"ゆか/かい",emoji:"📦",category:"もの",level:"中級"},
+    {word:"wall",meaning:"かべ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"roof",meaning:"やね",emoji:"📦",category:"もの",level:"中級"},
+    {word:"key",meaning:"かぎ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"box",meaning:"はこ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"cup",meaning:"カップ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"dish",meaning:"さら",emoji:"📦",category:"もの",level:"中級"},
+    {word:"bottle",meaning:"ボトル",emoji:"📦",category:"もの",level:"中級"},
+    {word:"towel",meaning:"タオル",emoji:"📦",category:"もの",level:"中級"},
+    {word:"soap",meaning:"せっけん",emoji:"📦",category:"もの",level:"中級"},
+    {word:"car",meaning:"くるま",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"bus",meaning:"バス",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"train",meaning:"でんしゃ",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"bike",meaning:"じてんしゃ",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"plane",meaning:"ひこうき",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"ship",meaning:"ふね",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"taxi",meaning:"タクシー",emoji:"🚗",category:"乗り物",level:"中級"},
+    {word:"drive",meaning:"うんてんする",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"ride",meaning:"のる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"shirt",meaning:"シャツ",emoji:"👕",category:"服",level:"中級"},
+    {word:"pants",meaning:"ズボン",emoji:"👕",category:"服",level:"中級"},
+    {word:"dress",meaning:"ドレス",emoji:"👕",category:"服",level:"中級"},
+    {word:"shoes",meaning:"くつ",emoji:"👕",category:"服",level:"中級"},
+    {word:"hat",meaning:"ぼうし",emoji:"👕",category:"服",level:"中級"},
+    {word:"coat",meaning:"コート",emoji:"👕",category:"服",level:"中級"},
+    {word:"socks",meaning:"くつした",emoji:"👕",category:"服",level:"中級"},
+    {word:"glasses",meaning:"めがね",emoji:"👕",category:"服",level:"中級"},
+    {word:"watch",meaning:"うでどけい",emoji:"📦",category:"もの",level:"中級"},
+    {word:"umbrella",meaning:"かさ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"ring",meaning:"ゆびわ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"wallet",meaning:"さいふ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"English",meaning:"えいご",emoji:"📚",category:"教科",level:"中級"},
+    {word:"math",meaning:"すうがく",emoji:"📚",category:"教科",level:"中級"},
+    {word:"science",meaning:"りか",emoji:"📚",category:"教科",level:"中級"},
+    {word:"art",meaning:"びじゅつ",emoji:"📚",category:"教科",level:"中級"},
+    {word:"P.E.",meaning:"たいいく",emoji:"📚",category:"教科",level:"中級"},
+    {word:"class",meaning:"じゅぎょう/クラス",emoji:"🏫",category:"学校",level:"中級"},
+    {word:"teacher",meaning:"せんせい",emoji:"🏫",category:"学校",level:"中級"},
+    {word:"student",meaning:"せいと",emoji:"🏫",category:"学校",level:"中級"},
+    {word:"homework",meaning:"しゅくだい",emoji:"🏫",category:"学校",level:"中級"},
+    {word:"test",meaning:"テスト",emoji:"🏫",category:"学校",level:"中級"},
+    {word:"pencil",meaning:"えんぴつ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"eraser",meaning:"けしゴム",emoji:"📦",category:"もの",level:"中級"},
+    {word:"ruler",meaning:"ものさし",emoji:"📦",category:"もの",level:"中級"},
+    {word:"notebook",meaning:"ノート",emoji:"📦",category:"もの",level:"中級"},
+    {word:"scissors",meaning:"はさみ",emoji:"📦",category:"もの",level:"中級"},
+    {word:"soccer",meaning:"サッカー",emoji:"⚽",category:"スポーツ",level:"中級"},
+    {word:"baseball",meaning:"やきゅう",emoji:"⚽",category:"スポーツ",level:"中級"},
+    {word:"tennis",meaning:"テニス",emoji:"⚽",category:"スポーツ",level:"中級"},
+    {word:"basketball",meaning:"バスケットボール",emoji:"⚽",category:"スポーツ",level:"中級"},
+    {word:"swimming",meaning:"すいえい",emoji:"⚽",category:"スポーツ",level:"中級"},
+    {word:"sport",meaning:"スポーツ",emoji:"⚽",category:"スポーツ",level:"中級"},
+    {word:"game",meaning:"ゲーム",emoji:"🎮",category:"趣味",level:"中級"},
+    {word:"movie",meaning:"えいが",emoji:"🎮",category:"趣味",level:"中級"},
+    {word:"dance",meaning:"ダンス",emoji:"🎮",category:"趣味",level:"中級"},
+    {word:"hobby",meaning:"しゅみ",emoji:"🎮",category:"趣味",level:"中級"},
+    {word:"doctor",meaning:"いしゃ",emoji:"💼",category:"職業",level:"中級"},
+    {word:"nurse",meaning:"かんごし",emoji:"💼",category:"職業",level:"中級"},
+    {word:"police",meaning:"けいさつ",emoji:"💼",category:"職業",level:"中級"},
+    {word:"cook",meaning:"りょうりにん",emoji:"💼",category:"職業",level:"中級"},
+    {word:"singer",meaning:"かしゅ",emoji:"💼",category:"職業",level:"中級"},
+    {word:"farmer",meaning:"のうか",emoji:"💼",category:"職業",level:"中級"},
+    {word:"driver",meaning:"うんてんしゅ",emoji:"💼",category:"職業",level:"中級"},
+    {word:"sandwich",meaning:"サンドイッチ",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"hamburger",meaning:"ハンバーガー",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"noodle",meaning:"めん",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"cheese",meaning:"チーズ",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"butter",meaning:"バター",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"sugar",meaning:"さとう",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"salt",meaning:"しお",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"tea",meaning:"おちゃ/こうちゃ",emoji:"🥤",category:"飲み物",level:"中級"},
+    {word:"coffee",meaning:"コーヒー",emoji:"🥤",category:"飲み物",level:"中級"},
+    {word:"cookie",meaning:"クッキー",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"ice cream",meaning:"アイスクリーム",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"candy",meaning:"あめ/キャンディ",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"vegetable",meaning:"やさい",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"grape",meaning:"ぶどう",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"strawberry",meaning:"いちご",emoji:"🍎",category:"食べ物",level:"中級"},
+    {word:"know",meaning:"しる/しっている",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"think",meaning:"おもう",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"want",meaning:"ほしい/したい",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"love",meaning:"だいすきだ",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"need",meaning:"ひつようだ",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"use",meaning:"つかう",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"take",meaning:"とる/つれていく",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"give",meaning:"あげる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"get",meaning:"もらう/なる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"buy",meaning:"かう",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"help",meaning:"たすける",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"open",meaning:"あける",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"close",meaning:"しめる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"talk",meaning:"はなす",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"say",meaning:"いう",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"ask",meaning:"きく/たずねる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"answer",meaning:"こたえる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"call",meaning:"よぶ/でんわする",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"bring",meaning:"もってくる",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"put",meaning:"おく",emoji:"⚡",category:"動詞",level:"中級"},
+    {word:"long",meaning:"ながい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"short",meaning:"みじかい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"tall",meaning:"せがたかい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"young",meaning:"わかい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"beautiful",meaning:"うつくしい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"easy",meaning:"かんたんな",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"hard",meaning:"むずかしい/かたい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"busy",meaning:"いそがしい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"tired",meaning:"つかれた",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"hungry",meaning:"おなかがすいた",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"funny",meaning:"おかしい/おもしろい",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"kind",meaning:"しんせつな",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"clean",meaning:"きれいな",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"quiet",meaning:"しずかな",emoji:"✨",category:"形容詞",level:"中級"},
+    {word:"in",meaning:"〜の中に",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"on",meaning:"〜の上に",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"at",meaning:"〜で/〜に",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"to",meaning:"〜へ/〜に",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"from",meaning:"〜から",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"with",meaning:"〜といっしょに",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"about",meaning:"〜について",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"for",meaning:"〜のために",emoji:"🔗",category:"前置詞",level:"中級"},
+    {word:"and",meaning:"そして",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"but",meaning:"しかし",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"or",meaning:"または",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"because",meaning:"なぜなら",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"when",meaning:"〜のとき",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"if",meaning:"もし〜なら",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"so",meaning:"だから",emoji:"🔗",category:"接続詞",level:"中級"},
+    {word:"very",meaning:"とても",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"also",meaning:"〜も",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"too",meaning:"〜も/とても",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"always",meaning:"いつも",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"usually",meaning:"たいてい",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"sometimes",meaning:"ときどき",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"never",meaning:"けっして〜ない",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"here",meaning:"ここ",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"there",meaning:"そこ/あそこ",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"together",meaning:"いっしょに",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"again",meaning:"もういちど",emoji:"💨",category:"副詞",level:"中級"},
+    {word:"really",meaning:"ほんとうに",emoji:"💨",category:"副詞",level:"中級"},
+  ],
+  "上級": [
+    {word:"first",meaning:"1番め",emoji:"🔢",category:"序数",level:"上級"},
+    {word:"second",meaning:"2番め",emoji:"🔢",category:"序数",level:"上級"},
+    {word:"third",meaning:"3番め",emoji:"🔢",category:"序数",level:"上級"},
+    {word:"last",meaning:"さいごの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"next",meaning:"つぎの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"many",meaning:"たくさんの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"much",meaning:"たくさんの(量)",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"few",meaning:"少ししかない",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"some",meaning:"いくつかの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"all",meaning:"すべての",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"both",meaning:"両方の",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"each",meaning:"それぞれの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"every",meaning:"すべての",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"who",meaning:"だれ",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"what",meaning:"なに",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"where",meaning:"どこ",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"when",meaning:"いつ",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"why",meaning:"なぜ",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"how",meaning:"どのように",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"which",meaning:"どれ/どちら",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"whose",meaning:"だれの",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"how long",meaning:"どのくらい",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"how many",meaning:"いくつ",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"how much",meaning:"いくら",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"what time",meaning:"何時",emoji:"❓",category:"疑問詞",level:"上級"},
+    {word:"can",meaning:"〜できる",emoji:"🔧",category:"助動詞",level:"上級"},
+    {word:"must",meaning:"〜しなければならない",emoji:"🔧",category:"助動詞",level:"上級"},
+    {word:"should",meaning:"〜すべきだ",emoji:"🔧",category:"助動詞",level:"上級"},
+    {word:"may",meaning:"〜してもよい",emoji:"🔧",category:"助動詞",level:"上級"},
+    {word:"will",meaning:"〜するつもり",emoji:"🔧",category:"助動詞",level:"上級"},
+    {word:"send",meaning:"おくる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"turn",meaning:"まわす/まがる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"stand",meaning:"たつ",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"sit",meaning:"すわる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"leave",meaning:"でる/さる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"arrive",meaning:"とうちゃくする",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"start",meaning:"はじめる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"finish",meaning:"おわる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"stop",meaning:"とまる/やめる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"wait",meaning:"まつ",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"try",meaning:"ためす/がんばる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"enjoy",meaning:"たのしむ",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"visit",meaning:"たずねる/おとずれる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"live",meaning:"すむ",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"work",meaning:"はたらく",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"show",meaning:"みせる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"teach",meaning:"おしえる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"learn",meaning:"まなぶ",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"forget",meaning:"わすれる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"remember",meaning:"おぼえている",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"find",meaning:"みつける",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"lose",meaning:"なくす",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"break",meaning:"こわす/われる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"wash",meaning:"あらう",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"cook",meaning:"りょうりする",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"carry",meaning:"はこぶ",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"wear",meaning:"きる/はく",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"change",meaning:"かえる/かわる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"decide",meaning:"きめる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"agree",meaning:"さんせいする",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"notice",meaning:"きがつく",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"wonder",meaning:"〜かな/ふしぎに思う",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"expect",meaning:"きたいする",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"hope",meaning:"きぼうする",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"wish",meaning:"ねがう",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"mean",meaning:"意味する",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"happen",meaning:"おこる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"continue",meaning:"つづける",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"return",meaning:"もどる/かえす",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"enter",meaning:"はいる",emoji:"⚡",category:"動詞",level:"上級"},
+    {word:"same",meaning:"おなじ",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"different",meaning:"ちがう",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"important",meaning:"じゅうような",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"popular",meaning:"にんきのある",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"famous",meaning:"ゆうめいな",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"ready",meaning:"じゅんびができた",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"late",meaning:"おそい/おくれた",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"early",meaning:"はやい/はやく",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"free",meaning:"じゆうな/むりょうの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"safe",meaning:"あんぜんな",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"sick",meaning:"びょうきの",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"well",meaning:"げんきに/じょうずに",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"right",meaning:"ただしい/みぎ",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"wrong",meaning:"まちがった",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"sure",meaning:"たしかな",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"glad",meaning:"うれしい",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"afraid",meaning:"こわい/おそれている",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"surprised",meaning:"おどろいた",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"excited",meaning:"わくわくした",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"interested",meaning:"きょうみをもった",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"interesting",meaning:"おもしろい/きょうみぶかい",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"boring",meaning:"つまらない",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"delicious",meaning:"おいしい",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"cute",meaning:"かわいい",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"brave",meaning:"ゆうかんな",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"careful",meaning:"きをつけた",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"wonderful",meaning:"すばらしい",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"special",meaning:"とくべつな",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"terrible",meaning:"ひどい",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"perfect",meaning:"かんぺきな",emoji:"✨",category:"形容詞",level:"上級"},
+    {word:"idea",meaning:"アイデア/考え",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"problem",meaning:"もんだい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"question",meaning:"しつもん",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"story",meaning:"はなし/ものがたり",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"news",meaning:"ニュース",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"letter",meaning:"てがみ/文字",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"message",meaning:"メッセージ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"name",meaning:"なまえ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"word",meaning:"ことば/単語",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"people",meaning:"ひとびと",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"world",meaning:"せかい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"country",meaning:"くに",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"language",meaning:"ことば/げんご",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"culture",meaning:"ぶんか",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"trip",meaning:"りょこう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"vacation",meaning:"きゅうか/バケーション",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"birthday",meaning:"たんじょうび",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"party",meaning:"パーティー",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"gift",meaning:"プレゼント",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"money",meaning:"お金",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"price",meaning:"ねだん",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"ticket",meaning:"チケット",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"map",meaning:"ちず",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"address",meaning:"じゅうしょ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"health",meaning:"けんこう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"exercise",meaning:"うんどう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"team",meaning:"チーム",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"member",meaning:"メンバー",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"event",meaning:"イベント/行事",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"concert",meaning:"コンサート",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"festival",meaning:"まつり",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"museum",meaning:"はくぶつかん",emoji:"📍",category:"場所",level:"上級"},
+    {word:"zoo",meaning:"どうぶつえん",emoji:"📍",category:"場所",level:"上級"},
+    {word:"purpose",meaning:"もくてき",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"result",meaning:"けっか",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"reason",meaning:"りゆう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"example",meaning:"れい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"information",meaning:"じょうほう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"experience",meaning:"けいけん",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"advice",meaning:"アドバイス",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"opinion",meaning:"いけん",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"fact",meaning:"じじつ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"truth",meaning:"しんじつ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"future",meaning:"みらい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"past",meaning:"かこ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"chance",meaning:"チャンス/きかい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"dream",meaning:"ゆめ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"goal",meaning:"もくひょう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"rule",meaning:"ルール",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"plan",meaning:"けいかく",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"step",meaning:"ステップ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"success",meaning:"せいこう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"mistake",meaning:"まちがい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"surprise",meaning:"おどろき",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"interest",meaning:"きょうみ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"practice",meaning:"れんしゅう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"contest",meaning:"コンテスト",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"performance",meaning:"パフォーマンス",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"competition",meaning:"きょうそう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"program",meaning:"プログラム",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"project",meaning:"プロジェクト",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"report",meaning:"レポート",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"grade",meaning:"せいせき/学年",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"score",meaning:"スコア",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"prize",meaning:"しょうひん",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"medal",meaning:"メダル",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"champion",meaning:"チャンピオン",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"record",meaning:"きろく",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"mountain",meaning:"やま",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"forest",meaning:"もり",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"beach",meaning:"ビーチ/はまべ",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"island",meaning:"しま",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"lake",meaning:"みずうみ",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"earth",meaning:"ちきゅう/つち",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"air",meaning:"くうき",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"fire",meaning:"ひ",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"light",meaning:"ひかり",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"stone",meaning:"いし",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"pond",meaning:"いけ",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"hill",meaning:"おか",emoji:"🌿",category:"自然",level:"上級"},
+    {word:"shoulder",meaning:"かた",emoji:"💪",category:"体",level:"上級"},
+    {word:"stomach",meaning:"おなか",emoji:"💪",category:"体",level:"上級"},
+    {word:"heart",meaning:"しんぞう/こころ",emoji:"💪",category:"体",level:"上級"},
+    {word:"cold",meaning:"かぜ",emoji:"🏥",category:"健康",level:"上級"},
+    {word:"fever",meaning:"ねつ",emoji:"🏥",category:"健康",level:"上級"},
+    {word:"ago",meaning:"〜まえ",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"soon",meaning:"もうすぐ/すぐに",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"still",meaning:"まだ",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"already",meaning:"すでに/もう",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"yet",meaning:"まだ/もう",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"just",meaning:"ちょうど/たった今",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"only",meaning:"〜だけ",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"quite",meaning:"かなり",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"enough",meaning:"じゅうぶんに",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"back",meaning:"もどって",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"away",meaning:"はなれて",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"around",meaning:"まわりに",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"outside",meaning:"そとに",emoji:"💨",category:"副詞",level:"上級"},
+    {word:"of course",meaning:"もちろん",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"I see",meaning:"なるほど",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"let's",meaning:"〜しましょう",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"would like",meaning:"〜したい",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"how about",meaning:"〜はどうですか",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"at first",meaning:"はじめは",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"at last",meaning:"ついに",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"for example",meaning:"たとえば",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"in fact",meaning:"じつは",emoji:"📖",category:"熟語",level:"上級"},
+    {word:"way",meaning:"みち/やりかた",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"place",meaning:"ばしょ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"thing",meaning:"もの/こと",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"life",meaning:"いのち/せいかつ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"month",meaning:"つき/がつ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"hour",meaning:"じかん(1時間)",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"minute",meaning:"ふん",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"color",meaning:"いろ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"size",meaning:"おおきさ/サイズ",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"number",meaning:"かず/ばんごう",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"age",meaning:"とし/ねんれい",emoji:"📝",category:"名詞",level:"上級"},
+    {word:"boy",meaning:"おとこのこ",emoji:"👤",category:"人",level:"上級"},
+    {word:"girl",meaning:"おんなのこ",emoji:"👤",category:"人",level:"上級"},
+    {word:"man",meaning:"おとこのひと",emoji:"👤",category:"人",level:"上級"},
+    {word:"woman",meaning:"おんなのひと",emoji:"👤",category:"人",level:"上級"},
+  ],
+};
+
+// Flatten all words for backward compat, add example placeholder
+const words = [...wordData["初級"], ...wordData["中級"], ...wordData["上級"]].map(w => ({
+  ...w,
+  example: ''
+}));
+
+// ── Storage ───────────────────────────────────────────
+const SK = 'eiken5_flags_v1';
+let flagged = new Set();
+try { flagged = new Set(JSON.parse(localStorage.getItem(SK)) || []); } catch {}
+function saveFlags() { try { localStorage.setItem(SK, JSON.stringify([...flagged])); } catch {} }
+
+// ── State ────────────────────────────────────────────
+let currentWords = [];
+let currentIndex = 0;
+let okCount = 0, ngCount = 0;
+let mode = 'all';
+let currentCat = 'すべて';
+let currentLevel = 'all';
+let waitingNext = false; // true after NG answer shown
+
+const categories = ['すべて', ...new Set(words.map(w => w.category))];
+
+// ── Build category filters ────────────────────────────
+function buildFilters() {
+  const wrap = document.getElementById('filterWrap');
+  wrap.innerHTML = '';
+  const levelWords = currentLevel === 'all' ? words : words.filter(w => w.level === currentLevel);
+  const presentCats = new Set(levelWords.map(w => w.category));
+  const visibleCats = ['すべて', ...categories.slice(1).filter(c => presentCats.has(c))];
+  if (currentCat !== 'すべて' && !presentCats.has(currentCat)) currentCat = 'すべて';
+  visibleCats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat === currentCat ? ' active' : '');
+    btn.textContent = cat; btn.dataset.cat = cat;
+    btn.onclick = () => {
+      currentCat = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+      resetSession();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function setLevel(lv) {
+  currentLevel = lv;
+  ['lvAll','lv1','lv2','lv3'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const map = {'all':'lvAll','初級':'lv1','中級':'lv2','上級':'lv3'};
+  document.getElementById(map[lv]).classList.add('active');
+  currentCat = 'すべて';
+  buildFilters();
+  resetSession();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('tabAll').classList.toggle('active', m === 'all');
+  document.getElementById('tabReview').classList.toggle('active', m === 'review');
+  resetSession();
+}
+
+function getList() {
+  let list = [...words];
+  if (currentLevel !== 'all') list = list.filter(w => w.level === currentLevel);
+  if (currentCat !== 'すべて') list = list.filter(w => w.category === currentCat);
+  if (mode === 'review') list = list.filter(w => flagged.has(w.word));
+  return list;
+}
+
+// ── Session ───────────────────────────────────────────
+function resetSession() {
+  currentWords = getList();
+  currentIndex = 0; okCount = 0; ngCount = 0; waitingNext = false;
+  document.getElementById('cardScene').style.display = 'block';
+  document.getElementById('actionBtns').style.display = 'grid';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('completePanel').classList.remove('show');
+  document.getElementById('cardScene').classList.remove('flipped');
+  updateChips(); updateFlagUI();
+  if (currentWords.length === 0) { showEmpty(); return; }
+  showCard(); updateProgress();
+}
+
+function showEmpty() {
+  document.getElementById('cardScene').style.display = 'none';
+  document.getElementById('actionBtns').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  const p = document.getElementById('completePanel');
+  p.classList.add('show');
+  document.getElementById('cSub').textContent = '要復習の単語がありません';
+  document.getElementById('cOk').textContent = '—';
+  document.getElementById('cNg').textContent = '—';
+  document.getElementById('cFlag').textContent = flagged.size;
+  document.getElementById('reviewBtn').style.display = 'none';
+}
+
+function showCard() {
+  const w = currentWords[currentIndex];
+  document.getElementById('cardWord').textContent = w.word;
+  document.getElementById('cardEmoji').textContent = w.emoji;
+  document.getElementById('cardMeaning').textContent = w.meaning;
+  document.getElementById('cardExample').textContent = w.example;
+  const n = (currentIndex + 1) + ' / ' + currentWords.length;
+  document.getElementById('fCat').textContent = w.category;
+  document.getElementById('bCat').textContent = w.category;
+  document.getElementById('fNum').textContent = n;
+  document.getElementById('bNum').textContent = n;
+  const lvMap = {'初級':'🟢 初級','中級':'🔵 中級','上級':'🟣 上級'};
+  document.getElementById('levelBadge').textContent = lvMap[w.level] || '';
+  document.getElementById('flagDot').classList.toggle('on', flagged.has(w.word));
+  document.getElementById('flagDotBack').style.opacity = flagged.has(w.word) ? '1' : '0';
+  waitingNext = false;
+  document.getElementById('cardScene').classList.remove('flipped');
+  document.getElementById('actionBtns').style.display = 'grid';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+// ── Answer handlers ───────────────────────────────────
+function answerOK() {
+  if (waitingNext) return;
+  okCount++;
+  playPingPong();
+  updateChips();
+  triggerOKEffects();
+  // Skip to next immediately
+  currentIndex++;
+  if (currentIndex >= currentWords.length) { showComplete(); return; }
+  setTimeout(() => { showCard(); updateProgress(); }, 320);
+}
+
+function triggerOKEffects() {
+  // 1. Counter pop
+  const ctr = document.getElementById('okCounter');
+  ctr.classList.remove('ok-pop');
+  void ctr.offsetWidth;
+  ctr.classList.add('ok-pop');
+  setTimeout(() => ctr.classList.remove('ok-pop'), 500);
+
+  // 2. Screen flash
+  const flash = document.getElementById('screenFlash');
+  flash.style.animation = 'none';
+  void flash.offsetWidth;
+  flash.style.animation = 'screenFlash 0.55s ease-out forwards';
+
+  // 3. Burst particles from card
+  const card = document.getElementById('cardScene');
+  const rect = card.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  burstParticles(cx, cy, okCount);
+}
+
+function answerNG() {
+  if (waitingNext) return;
+  waitingNext = true;
+  ngCount++;
+  const w = currentWords[currentIndex];
+  flagged.add(w.word); saveFlags();
+  playBuzz();
+  updateChips(); updateFlagUI();
+  // Flip card to reveal answer
+  document.getElementById('cardScene').classList.add('flipped');
+  document.getElementById('actionBtns').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('flagDotBack').style.opacity = '1';
+  // Read aloud after flip animation
+  setTimeout(() => speak(w.word), 500);
+  showToast('🔖 要復習に追加', 'ng-t');
+}
+
+function nextCard() {
+  currentIndex++;
+  if (currentIndex >= currentWords.length) { showComplete(); return; }
+  showCard(); updateProgress();
+}
+
+function speakWord(e) {
+  e.stopPropagation();
+  const w = currentWords[currentIndex];
+  if (w) speak(w.word);
+}
+
+// ── UI helpers ────────────────────────────────────────
+function updateProgress() {
+  const total = currentWords.length;
+  const pct = total ? (currentIndex / total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressNums').textContent = currentIndex + ' / ' + total;
+}
+
+function updateChips() {
+  document.getElementById('sOk').textContent = okCount;
+  document.getElementById('sNg').textContent = ngCount;
+  document.getElementById('sFlag').textContent = flagged.size;
+  document.getElementById('okBig').textContent = okCount;
+}
+
+function updateFlagUI() {
+  document.getElementById('flagNum').textContent = flagged.size;
+  renderFlagList();
+}
+
+function showComplete() {
+  document.getElementById('cardScene').style.display = 'none';
+  document.getElementById('actionBtns').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  const p = document.getElementById('completePanel');
+  p.classList.add('show');
+  const total = currentWords.length;
+  document.getElementById('cSub').textContent = `正解率 ${total ? Math.round(okCount/total*100) : 0}%`;
+  document.getElementById('cOk').textContent = okCount;
+  document.getElementById('cNg').textContent = ngCount;
+  document.getElementById('cFlag').textContent = flagged.size;
+  document.getElementById('reviewBtn').style.display = flagged.size > 0 ? 'block' : 'none';
+}
+
+function restart() {
+  resetSession();
+}
+
+function startReviewOnly() {
+  document.getElementById('completePanel').classList.remove('show');
+  mode = 'review';
+  document.getElementById('tabAll').classList.remove('active');
+  document.getElementById('tabReview').classList.add('active');
+  resetSession();
+}
+
+function shuffleCards() {
+  currentWords = getList();
+  for (let i = currentWords.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [currentWords[i], currentWords[j]] = [currentWords[j], currentWords[i]];
+  }
+  currentIndex = 0; okCount = 0; ngCount = 0; waitingNext = false;
+  document.getElementById('completePanel').classList.remove('show');
+  document.getElementById('cardScene').style.display = 'block';
+  document.getElementById('cardScene').classList.remove('flipped');
+  document.getElementById('actionBtns').style.display = 'grid';
+  document.getElementById('nextBtn').style.display = 'none';
+  updateChips(); showCard(); updateProgress();
+  showToast('シャッフルしました', '');
+}
+
+// ── Flag drawer ────────────────────────────────────────
+function toggleDrawer() {
+  const d = document.getElementById('flagDrawer');
+  const open = d.classList.toggle('open');
+  document.getElementById('flagBtn').classList.toggle('active', open);
+  if (open) renderFlagList();
+}
+
+function renderFlagList() {
+  const list = document.getElementById('flagList');
+  if (flagged.size === 0) { list.innerHTML = '<div class="flag-empty">要復習の単語はありません</div>'; return; }
+  list.innerHTML = words.filter(w => flagged.has(w.word)).map(w => `
+    <div class="flag-item">
+      <div><div class="flag-word">${w.word}</div><div class="flag-meaning">${w.meaning}</div></div>
+      <button class="flag-remove" onclick="removeFlagItem('${w.word}')">✕ 解除</button>
+    </div>`).join('');
+}
+
+function removeFlagItem(word) {
+  flagged.delete(word); saveFlags();
+  if (mode === 'review') resetSession();
+  else if (currentWords[currentIndex] && currentWords[currentIndex].word === word) {
+    document.getElementById('flagDot').classList.remove('on');
+    document.getElementById('flagDotBack').style.opacity = '0';
+  }
+  updateChips(); updateFlagUI();
+  showToast('フラグを解除しました', '');
+}
+
+function clearAllFlags() {
+  if (!confirm('要復習リストをすべてクリアしますか？')) return;
+  flagged.clear(); saveFlags();
+  if (mode === 'review') resetSession();
+  updateChips(); updateFlagUI();
+  showToast('リストをクリアしました', '');
+}
+
+function showToast(msg, cls) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + cls;
+  void t.offsetWidth;
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── Particle system ──────────────────────────────────
+const canvas = document.getElementById('particleCanvas');
+const ctx2d = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const COLORS = ['#27AE60','#F1C40F','#E67E22','#3498DB','#E91E63','#9B59B6','#1ABC9C','#FF5722'];
+const SHAPES = ['circle','star','rect'];
+
+function burstParticles(cx, cy, totalOk) {
+  // More particles / bigger burst as streak grows
+  const count = Math.min(14 + Math.floor(totalOk / 5) * 2, 40);
+  const speed = 6 + Math.min(totalOk * 0.4, 8);
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.6;
+    const v = speed * (0.6 + Math.random() * 0.8);
+    const size = 6 + Math.random() * 10;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * v,
+      vy: Math.sin(angle) * v - 2,
+      size,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+      alpha: 1,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.3,
+      life: 1,
+      decay: 0.018 + Math.random() * 0.014,
+    });
+  }
+}
+
+function drawStar(ctx, x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const b = a + Math.PI / 5;
+    ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+    ctx.lineTo(x + Math.cos(b) * r * 0.45, y + Math.sin(b) * r * 0.45);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function animateParticles() {
+  ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.35; // gravity
+    p.vx *= 0.97;
+    p.rot += p.rotSpeed;
+    p.life -= p.decay;
+    p.alpha = Math.max(0, p.life);
+    ctx2d.save();
+    ctx2d.globalAlpha = p.alpha;
+    ctx2d.fillStyle = p.color;
+    ctx2d.translate(p.x, p.y);
+    ctx2d.rotate(p.rot);
+    if (p.shape === 'circle') {
+      ctx2d.beginPath();
+      ctx2d.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+      ctx2d.fill();
+    } else if (p.shape === 'rect') {
+      ctx2d.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.6);
+    } else {
+      drawStar(ctx2d, 0, 0, p.size / 2);
+    }
+    ctx2d.restore();
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ── Init ──────────────────────────────────────────────
+buildFilters();
+resetSession();
+</script>
+</body>
+</html>
